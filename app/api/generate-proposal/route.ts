@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const document = await askGeminiForJSON<GeneratedProposal>({
       system: PROPOSAL_SYSTEM_PROMPT,
       user: intakeSummary(intake),
-      maxTokens: 4000,
+      maxTokens: 8000,
     });
 
     const proposal = {

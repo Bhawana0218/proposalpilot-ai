@@ -4,9 +4,9 @@ import { Proposal } from "./types";
 const PAGE_W = 210;
 const PAGE_H = 297;
 const MARGIN = 20;
-const GOLD = "#C9A227";
-const INK = "#0F1729";
-const TEXT = "#2A2F3B";
+const CYAN = "#00C2FF";
+const NAVY = "#0F172A";
+const TEXT = "#E2E8F0";
 
 export function generateProposalPDF(proposal: Proposal) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -24,8 +24,8 @@ export function generateProposalPDF(proposal: Proposal) {
 
   const footer = () => {
     doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(`ProposalPilot AI · ${intake.client.companyName}`, MARGIN, PAGE_H - 10);
+    doc.setTextColor(120);
+    doc.text(`NexGeTech AI · ${intake.client.companyName}`, MARGIN, PAGE_H - 10);
     doc.text(`${page}`, PAGE_W - MARGIN, PAGE_H - 10, { align: "right" });
   };
 
@@ -36,7 +36,7 @@ export function generateProposalPDF(proposal: Proposal) {
   const heading = (title: string) => {
     ensureSpace(16);
     toc.push({ title, page });
-    doc.setFillColor(GOLD);
+    doc.setFillColor(CYAN);
     doc.rect(MARGIN, y, 8, 1.2, "F");
     y += 6;
     doc.setFont("helvetica", "bold");
@@ -76,7 +76,7 @@ export function generateProposalPDF(proposal: Proposal) {
   const table = (headers: string[], rows: string[][], colWidths: number[]) => {
     ensureSpace(10 + rows.length * 7);
     let x = MARGIN;
-    doc.setFillColor(INK);
+    doc.setFillColor(NAVY);
     doc.setTextColor(255);
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
@@ -91,7 +91,7 @@ export function generateProposalPDF(proposal: Proposal) {
     rows.forEach((row, ri) => {
       ensureSpace(8);
       if (ri % 2 === 0) {
-        doc.setFillColor(245, 242, 232);
+        doc.setFillColor(20, 30, 50);
         doc.rect(MARGIN, y, colWidths.reduce((a, b) => a + b, 0), 7.5, "F");
       }
       x = MARGIN;
@@ -106,9 +106,9 @@ export function generateProposalPDF(proposal: Proposal) {
   };
 
   // ---------- COVER PAGE ----------
-  doc.setFillColor(INK);
+  doc.setFillColor(NAVY);
   doc.rect(0, 0, PAGE_W, PAGE_H, "F");
-  doc.setFillColor(GOLD);
+  doc.setFillColor(CYAN);
   doc.rect(0, 130, PAGE_W, 1.2, "F");
   doc.setTextColor(255);
   doc.setFont("helvetica", "bold");
@@ -116,7 +116,7 @@ export function generateProposalPDF(proposal: Proposal) {
   doc.text("NEXGETECH", MARGIN, 40);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(200);
+  doc.setTextColor(180);
   doc.text("PROJECT PROPOSAL & SCOPE DOCUMENT", MARGIN, 47);
 
   doc.setFont("helvetica", "bold");
@@ -130,8 +130,8 @@ export function generateProposalPDF(proposal: Proposal) {
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
-  doc.setTextColor(GOLD as any);
-  doc.text("Prepared by NexGeTech · Generated with ProposalPilot AI", MARGIN, 145);
+  doc.setTextColor(CYAN as any);
+  doc.text("Prepared by NexGeTech · AI Pre-Sales Copilot", MARGIN, 145);
 
   doc.setFontSize(9.5);
   doc.setTextColor(190);
@@ -147,23 +147,24 @@ export function generateProposalPDF(proposal: Proposal) {
     179
   );
   doc.text(`Proposal version: v${p.version}`, MARGIN, 186);
+  doc.text(`Proposal Score: ${p.proposalScore}/100`, MARGIN, 193);
 
-  doc.setDrawColor(GOLD as any);
+  doc.setDrawColor(CYAN as any);
   doc.setLineWidth(0.4);
   doc.circle(PAGE_W - 40, 250, 16);
   doc.setFontSize(8);
-  doc.setTextColor(GOLD as any);
+  doc.setTextColor(CYAN as any);
   doc.text("READINESS", PAGE_W - 40, 248, { align: "center" });
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text(`${p.completeness.overall}%`, PAGE_W - 40, 255, { align: "center" });
 
-  // ---------- TOC PLACEHOLDER PAGE (filled at the end) ----------
+  // ---------- TOC PLACEHOLDER ----------
   newPage();
   const tocPageIndex = page;
   y += 10;
 
-  // ---------- EXECUTIVE SUMMARY ----------
+  // ---------- CONTENT ----------
   newPage();
   heading("Executive Summary");
   paragraph(p.executiveSummary);
@@ -174,7 +175,6 @@ export function generateProposalPDF(proposal: Proposal) {
   heading("Proposed Solution");
   paragraph(p.proposedSolution);
 
-  // ---------- SCOPE ----------
   newPage();
   heading("Project Scope — In Scope");
   bullets(p.scopeIn, "✓");
@@ -187,7 +187,6 @@ export function generateProposalPDF(proposal: Proposal) {
   heading("Assumptions");
   bullets(p.assumptions);
 
-  // ---------- RISKS ----------
   newPage();
   heading("Risks & Dependencies");
   table(
@@ -200,7 +199,6 @@ export function generateProposalPDF(proposal: Proposal) {
   paragraph(`Risk level: ${p.scopeCreep.riskLevel}. ${p.scopeCreep.recommendation}`);
   bullets(p.scopeCreep.reasons);
 
-  // ---------- TIMELINE & TEAM ----------
   newPage();
   heading("Estimated Timeline");
   table(
@@ -216,7 +214,6 @@ export function generateProposalPDF(proposal: Proposal) {
     [130, 40]
   );
 
-  // ---------- ARCHITECTURE ----------
   newPage();
   heading("Recommended Architecture");
   bullets(p.architecture.stack);
@@ -226,7 +223,6 @@ export function generateProposalPDF(proposal: Proposal) {
   heading("Competitor Feature Benchmark");
   bullets(p.competitorFeatures);
 
-  // ---------- PRICING ----------
   newPage();
   heading("Pricing Packages");
   table(
@@ -246,7 +242,6 @@ export function generateProposalPDF(proposal: Proposal) {
     `Operational efficiency gain: ${p.roi.operationalEfficiencyGainPct}`,
   ]);
 
-  // ---------- SIGNATURE ----------
   newPage();
   heading("Acceptance & Signature");
   paragraph(
@@ -273,12 +268,12 @@ export function generateProposalPDF(proposal: Proposal) {
   toc.forEach((t) => {
     doc.setTextColor(TEXT);
     doc.text(t.title, MARGIN, y);
-    doc.setTextColor(150);
+    doc.setTextColor(120);
     doc.text(`${t.page}`, PAGE_W - MARGIN, y, { align: "right" });
     y += 8;
   });
 
   doc.save(
-    `${intake.client.companyName.replace(/\s+/g, "_") || "proposal"}_ProposalPilot.pdf`
+    `${intake.client.companyName.replace(/\s+/g, "_") || "proposal"}_NexGeTech.pdf`
   );
 }

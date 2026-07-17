@@ -1,94 +1,148 @@
-# ProposalPilot AI
+# NexGeTech AI Pre-Sales Copilot
 
-**An AI-powered presales copilot that turns client requirements into professional project proposals, scope documents, timelines, and service recommendations in minutes.**
+**An intelligent business consultant that helps agencies create winning project proposals, scope documents, delivery plans, budgets, and sales insights in minutes.**
 
 Built for the NexGeTech AI Application Developer Internship technical assessment.
 
-**→ [PRODUCT_STRATEGY.md](./PRODUCT_STRATEGY.md)** — the enterprise product vision, personas, feature roadmap, AI workflow architecture, database schema, revenue model, and investor positioning for where this product goes beyond the assessment. Worth reading if you want to see the product thinking behind the code, not just the code.
-
-> Positioning: not "a proposal generator" — a presales consultant in software form. It interviews the client the way a human account manager would, flags scope creep before it becomes a delivery problem, and produces a document good enough to actually send.
+> Not "a proposal generator" — a pre-sales consultant in software form. It interviews the client like a human account manager would, flags scope creep before it becomes a delivery problem, and produces a document good enough to actually send.
 
 ---
 
-## Why this isn't just a form + a prompt
-
-The brief asked for a form, an AI call, a proposal, and a PDF. Most submissions will stop there. ProposalPilot adds the parts of presales that are usually invisible and hardest to fake convincingly:
+## Why This Isn't Just a Form + a Prompt
 
 | Feature | What it does | Why it matters |
 |---|---|---|
-| **AI Discovery Interview Agent** | Before generating anything, Claude reviews the intake and asks 3–5 follow-up questions that would genuinely change scope or cost | Mimics how a real consultant runs a discovery call instead of jumping straight to output |
-| **Scope Creep Detector** | Flags when requested services/goals imply broad, multi-system work and proposes a phased delivery plan | Real agencies do this manually to protect margins |
-| **Proposal Completeness Score** | Scores business goals, technical requirements, budget clarity, and timeline expectations (0–100) individually, not just an overall number | Tells the account manager exactly what's still missing |
-| **AI Architecture Recommendation** | Recommends a stack with reasoning tied to the client's actual requirements | Shows engineering judgment, not templated tech |
-| **Proposal Chat Assistant** | Ask the generated proposal "why is this 14 weeks?" and get an answer grounded in the proposal's own numbers | Turns a static document into something defensible in a client call |
-| **Internal Sales Panel** | Deal-win probability + proposal quality score, marked clearly as internal-only | Salesforce-style signal that never leaks to the client-facing document |
-| **ROI Forecast** | Estimated cost before/after, annual savings, efficiency gain | Makes the business case, not just the technical one |
-| **Client Personality Detection** | Classifies the client (Startup Founder / Enterprise / Technical Founder / Non-Technical) and lets that shape the AI's framing | The same features get pitched differently to a founder vs. an enterprise buyer |
-| **Professional PDF Export** | Cover page, table of contents, styled sections, signature block — built with `jsPDF` directly (no screenshot-based export) | The PDF looks like something a client could actually receive, not a printed webpage |
+| **AI Discovery Interview Agent** | Before generating anything, Gemini reviews the intake and asks 2–6 follow-up questions that would genuinely change scope or cost | Mimics how a real consultant runs a discovery call |
+| **Discovery Intelligence Metrics** | Scores Business Clarity, Technical Confidence, Scope Completeness, and Delivery Risk | Tells you exactly what's still unknown |
+| **Consultant Insights** | Proactive observations like "authentication often increases scope by 15-20%" | Shows senior-level thinking, not templated output |
+| **Scope Creep Detector** | Flags when requested services imply broad, multi-system work and proposes phasing | Real agencies do this to protect margins |
+| **Proposal Health Score** | 0-100 score reflecting scope clarity, budget confidence, timeline realism | Quick quality signal |
+| **Executive Dashboard** | Animated score rings, team size, duration, cost, ROI — all at a glance | Dashboard-grade visibility |
+| **Interactive Timeline** | Animated vertical roadmap with phase nodes and duration badges | Visual delivery plan |
+| **AI Architecture Recommendation** | Recommends a stack with reasoning tied to actual requirements | Shows engineering judgment |
+| **Pricing Package Comparison** | Startup / Growth / Enterprise tiers with recommended highlight | Client-ready pricing |
+| **Win Probability Prediction** | Predicts chance of client approval with reasoning | Internal sales signal |
+| **ROI Projection** | Current cost vs. projected cost, annual savings, efficiency gains | Makes the business case |
+| **Proposal Chat Assistant** | Ask "why is this 14 weeks?" and get an answer grounded in the proposal's numbers | Turns a static doc into something defensible |
+| **Professional PDF Export** | Cover page, table of contents, styled sections, signature block | Looks like it came from a consulting firm |
+| **Framer Motion Animations** | Page transitions, staggered reveals, hover effects, animated counters | Premium feel |
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Zustand for wizard state
-- **AI:** Anthropic Claude (`@anthropic-ai/sdk`), server-side only, via three purpose-built API routes
-- **PDF:** `jspdf`, generated programmatically (text/table layout, not `html2canvas` screenshots) for print-quality, selectable-text output
-- **No database** — this is a stateless single-session tool by design; see [ARCHITECTURE.md](./ARCHITECTURE.md) for how it could grow one
+- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Zustand, Framer Motion
+- **AI:** Google Gemini (REST API, `gemini-2.5-flash-lite` with `gemini-2.0-flash` fallback), server-side only
+- **PDF:** `jspdf`, generated programmatically (text/table layout, not screenshots)
+- **Icons:** `lucide-react`
+- **No database** — stateless single-session tool by design
 
 ---
 
-## Getting started
+## Getting Started
 
 ```bash
 npm install
 cp .env.example .env.local
-# add your ANTHROPIC_API_KEY to .env.local
+# Add your GEMINI_API_KEY to .env.local
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### How to Get a Gemini API Key
+
+1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the key and paste it in `.env.local` as `GEMINI_API_KEY=your_key_here`
+
 ---
 
-## Product flow
+## Product Flow
 
 ```
-Client Info → Business Goals → Requested Services
-    → AI Discovery Interview (dynamic questions)
-    → AI Proposal Generation
-    → Proposal Preview (dossier + intelligence panels + chat)
-    → Export PDF
+DISCOVER          ANALYZE           ARCHITECT         GENERATE        PROPOSE
+┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐    ┌──────────┐
+│ Business │     │ Review   │     │ AI asks  │     │ Gemini   │    │ Dashboard│
+│ Context  │────▶│ captured │────▶│ 2-6 Qs   │────▶│ builds   │───▶│ + Chat   │
+│ Goals    │     │ intake   │     │ + insights│    │ proposal │    │ + PDF    │
+│ Services │     │          │     │          │     │          │    │          │
+└──────────┘     └──────────┘     └──────────┘     └──────────┘    └──────────┘
 ```
 
-Each step is a screen in `app/page.tsx`, driven by a single Zustand store (`lib/store.ts`) so state survives step navigation without prop drilling.
+Each step is driven by a single Zustand store (`lib/store.ts`). No prop drilling.
 
 ---
 
-## AI tools and prompts used
+## AI Tools and Prompts Used
 
-All prompt engineering lives in **`lib/prompts.ts`** — this is the file to read to understand the AI design.
+All prompt engineering lives in **`lib/prompts.ts`**.
 
-1. **`DISCOVERY_SYSTEM_PROMPT`** (used by `/api/discovery-questions`)
-   Frames Claude as a discovery-call consultant. Explicitly instructed to skip anything already answered and prioritize questions that change scope/cost/timeline over generic ones. Forced JSON output: `{ "questions": string[] }`.
+### 1. `DISCOVERY_SYSTEM_PROMPT` (`/api/discovery-questions`)
+Frames Gemini as a senior solutions architect conducting a discovery call. **Explicitly forbidden** from returning empty questions. Generates 2-6 questions plus completeness scores, consultant insights, and risk flags. Questions must impact scope, timeline, cost, team size, or architecture.
 
-2. **`PROPOSAL_SYSTEM_PROMPT`** (used by `/api/generate-proposal`)
-   The core prompt. This is a single large structured-output call rather than many small calls — deliberately, so every section (summary, scope, risks, timeline, team, architecture, pricing, ROI, scope-creep assessment, completeness score, quality score, deal probability) is generated with full awareness of every other section, so the numbers stay internally consistent (e.g. the recommended package actually matches the stated budget range, and the timeline actually matches the requested services). The prompt encodes explicit rules against generic filler, against defaulting completeness to a high score, and for grounding scope-creep risk in the actual number/breadth of services requested.
+### 2. `PROPOSAL_SYSTEM_PROMPT` (`/api/generate-proposal`)
+The core prompt. Single large structured-output call so every section (summary, scope, risks, timeline, team, architecture, pricing, ROI, scope-creep, completeness, quality, deal probability, budget estimate, win probability) is generated with full awareness of every other section — keeping numbers internally consistent.
 
-3. **`CHAT_SYSTEM_PROMPT`** (used by `/api/proposal-chat`)
-   A grounded Q&A prompt — the full generated proposal JSON is passed as context on every turn (Claude is stateless between requests, so state is re-sent each time per the completions-API pattern), and the model is explicitly told not to invent scope or numbers that contradict what's already in the document.
+### 3. `CHAT_SYSTEM_PROMPT` (`/api/proposal-chat`)
+Grounded Q&A — the full proposal JSON is passed as context on every turn. The model is told not to invent scope or pricing that contradicts the document.
 
-All three routes share `askClaudeForJSON()` / the raw `anthropic.messages.create()` call in `lib/anthropic.ts`, which centralizes model selection, JSON-fence stripping, and error handling so prompt logic never has to touch API plumbing.
+All routes share `askGeminiForJSON()` / `askGemini()` in `lib/gemini.ts`, which centralizes model selection (with automatic fallback), JSON-fence stripping, and error handling.
 
-**Model used:** `claude-sonnet-4-5-20250929`, called server-side only — the API key never reaches the browser.
+**Models used:** `gemini-2.5-flash-lite` (primary) with automatic fallback to `gemini-2.0-flash`. Called server-side only — the API key never reaches the browser.
 
 ---
 
-## What I'd build next with more time
+## Architecture
 
-- Persist proposals (Postgres + Prisma) so "Proposal Versioning" is a real diff between saved versions, not just an in-session array
-- Auth + multi-user workspaces so this is usable by an actual sales team, not a single browser session
-- A client-facing share link (read-only view of the dossier) instead of only a downloadable PDF
-- Real competitor benchmarking backed by a search tool call instead of model knowledge alone
-- Streaming the proposal generation section-by-section instead of one blocking call, so the UI can show sections as they complete
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full system diagram, data flow, and design decisions.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full system diagram and these tradeoffs in more detail.
+---
+
+## Project Structure
+
+```
+proposalpilot-ai/
+├── app/
+│   ├── layout.tsx              # Root layout (fonts, metadata)
+│   ├── page.tsx                # Main page (dashboard orchestrator)
+│   ├── globals.css             # Glass, orbs, glow effects
+│   └── api/
+│       ├── discovery-questions/ # AI discovery questions
+│       ├── generate-proposal/   # AI proposal generation
+│       └── proposal-chat/       # AI chat about proposals
+├── components/
+│   ├── AnimatedBackground.tsx   # Floating orbs background
+│   ├── Sidebar.tsx              # Collapsible sidebar navigation
+│   ├── DiscoverStep.tsx         # Business context + goals + services
+│   ├── AnalyzeStep.tsx          # Intake review before AI
+│   ├── DiscoveryChat.tsx        # AI discovery interview
+│   ├── GeneratingScreen.tsx     # Storytelling loading screen
+│   ├── ProposalDashboard.tsx    # Card-based proposal view
+│   ├── ExecutiveDashboard.tsx   # Score rings + metrics
+│   ├── InteractiveTimeline.tsx  # Animated roadmap
+│   ├── GlassCard.tsx            # Reusable glass card
+│   ├── AnimatedCounter.tsx      # Count-up animation
+│   ├── ChatAssistant.tsx        # Proposal Q&A chat
+│   ├── PdfExportButton.tsx      # PDF export trigger
+│   ├── Motion.tsx               # Framer Motion wrappers
+│   └── TypingEffect.tsx         # Typewriter text effect
+├── lib/
+│   ├── gemini.ts                # Gemini REST API client
+│   ├── prompts.ts               # All AI prompts
+│   ├── types.ts                 # TypeScript interfaces
+│   ├── store.ts                 # Zustand state management
+│   └── pdf-generator.ts         # jsPDF PDF builder
+```
+
+---
+
+## What I'd Build Next
+
+- Persist proposals (Postgres + Prisma) for real versioning
+- Auth + multi-user workspaces for actual sales teams
+- Client-facing share link (read-only dossier view)
+- Real competitor benchmarking via search tool calls
+- Streaming proposal generation section-by-section
+- Voice discovery mode

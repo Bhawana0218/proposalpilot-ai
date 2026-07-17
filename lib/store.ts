@@ -1,19 +1,19 @@
 import { create } from "zustand";
-import { DiscoveryAnswer, IntakeState, Proposal } from "./types";
+import { DiscoveryAnswer, DiscoveryResult, IntakeState, Proposal } from "./types";
 
 export type Step =
-  | "client"
-  | "goals"
-  | "services"
-  | "discovery"
+  | "discover"
+  | "analyze"
+  | "architect"
   | "generating"
-  | "preview";
+  | "propose";
 
 interface AppState {
   step: Step;
   intake: IntakeState;
+  discoveryResult: DiscoveryResult | null;
   proposal: Proposal | null;
-  proposalHistory: Proposal[]; // versioning
+  proposalHistory: Proposal[];
   isLoading: boolean;
   error: string | null;
 
@@ -22,6 +22,7 @@ interface AppState {
   updateGoals: (patch: Partial<IntakeState["goals"]>) => void;
   toggleService: (service: string) => void;
   setDiscoveryAnswers: (answers: DiscoveryAnswer[]) => void;
+  setDiscoveryResult: (result: DiscoveryResult) => void;
   setProposal: (proposal: Proposal) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -45,8 +46,9 @@ const emptyIntake: IntakeState = {
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
-  step: "client",
+  step: "discover",
   intake: emptyIntake,
+  discoveryResult: null,
   proposal: null,
   proposalHistory: [],
   isLoading: false,
@@ -67,13 +69,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     }),
   setDiscoveryAnswers: (answers) =>
     set((s) => ({ intake: { ...s.intake, discoveryAnswers: answers } })),
+  setDiscoveryResult: (result) => set({ discoveryResult: result }),
   setProposal: (proposal) =>
     set((s) => ({
       proposal,
       proposalHistory: [...s.proposalHistory, proposal],
-      step: "preview",
+      step: "propose",
     })),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
-  reset: () => set({ step: "client", intake: emptyIntake, proposal: null, error: null }),
+  reset: () =>
+    set({
+      step: "discover",
+      intake: emptyIntake,
+      discoveryResult: null,
+      proposal: null,
+      error: null,
+    }),
 }));

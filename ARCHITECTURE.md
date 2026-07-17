@@ -1,100 +1,142 @@
-# Architecture Overview — ProposalPilot AI
+# Architecture Overview
 
-## System diagram
+## System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         BROWSER (client)                        │
-│                                                                   │
-│  Wizard steps (React, App Router)                                │
-│  StepClient → StepGoals → StepServices → StepDiscovery           │
-│                                                                   │
-│         all driven by a single Zustand store (lib/store.ts)      │
-│                          │                                        │
-│         ┌────────────────┼─────────────────┐                     │
-│         ▼                ▼                 ▼                     │
-│  POST /api/          POST /api/       POST /api/                 │
-│  discovery-questions  generate-proposal proposal-chat            │
-└─────────┼────────────────┼─────────────────┼─────────────────────┘
-          │                │                 │
-          ▼                ▼                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    NEXT.JS SERVER (API routes)                   │
-│                                                                   │
-│  lib/prompts.ts   — all prompt templates, one source of truth    │
-│  lib/anthropic.ts — shared Claude client + JSON-safe wrapper     │
-│                                                                   │
-└─────────┼─────────────────────────────────────────────────────────┘
-          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Anthropic API (Claude)                        │
-│         claude-sonnet-4-5-20250929, structured JSON output       │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Browser (Client)                            │
+│                                                                     │
+│  ┌──────────────┐  ┌──────────────────────────────────────────────┐│
+│  │   Zustand     │  │              React Components                ││
+│  │   Store       │◀─┤  DiscoverStep → AnalyzeStep → DiscoveryChat ││
+│  │  (state)      │  │  → GeneratingScreen → ProposalDashboard     ││
+│  └──────┬───────┘  └──────────────────────────────────────────────┘│
+│         │                                                           │
+│         │  fetch()                                                  │
+└─────────┼───────────────────────────────────────────────────────────┘
           │
-          ▼ (proposal JSON returned to browser)
-┌─────────────────────────────────────────────────────────────────┐
-│  ProposalDocument.tsx renders:                                   │
-│    - CompletenessMeter, ScopeCreepAlert, InternalSalesPanel       │
-│    - the dossier itself (executive summary → signature block)    │
-│    - ChatAssistant (re-queries /api/proposal-chat per question)  │
-│                                                                   │
-│  PdfExportButton → lib/pdf-generator.ts (jsPDF, client-side,      │
-│  no network call — builds the PDF from the same JSON in memory)  │
-└─────────────────────────────────────────────────────────────────┘
+          ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Next.js API Routes (Server)                    │
+│                                                                     │
+│  POST /api/discovery-questions                                      │
+│    └─ askGeminiForJSON() → DISCOVERY_SYSTEM_PROMPT                  │
+│                                                                     │
+│  POST /api/generate-proposal                                        │
+│    └─ askGeminiForJSON() → PROPOSAL_SYSTEM_PROMPT                   │
+│                                                                     │
+│  POST /api/proposal-chat                                            │
+│    └─ askGemini() → CHAT_SYSTEM_PROMPT                              │
+│                                                                     │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+                           │  HTTPS (REST API)
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Google Gemini API                                 │
+│                                                                     │
+│  Primary: gemini-2.5-flash-lite                                     │
+│  Fallback: gemini-2.0-flash                                         │
+│                                                                     │
+│  Auth: GEMINI_API_KEY (server-side only, never exposed to client)   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## Why a single large generation call instead of many small ones
+## Data Flow
 
-An earlier design considered one Claude call per section (executive summary,
-scope, timeline, pricing, etc.) so each could be regenerated independently.
-That was rejected: sections in a real proposal are not independent — the
-recommended pricing tier has to agree with the timeline, which has to agree
-with the requested services and company size, which has to agree with the
-scope-creep assessment. Generating them in one structured call with a single
-shared context keeps those numbers consistent. The tradeoff is regeneration
-granularity (you regenerate the whole document, not one section) — noted as
-a known limitation, and solvable later with partial-regeneration prompts
-that pass the existing document back in as context to keep everything else
-fixed.
+### 1. Intake Collection (Client-Side Only)
+```
+User fills forms → Zustand store → IntakeState
+```
+No server calls. All data lives in browser memory.
 
-## Why the discovery step is a separate call from generation
+### 2. AI Discovery
+```
+IntakeState → POST /api/discovery-questions → Gemini
+  → DiscoveryResult { questions[], completeness, consultantInsights[], riskFlags[] }
+```
+Safety fallback: if Gemini returns 0 questions, 3 strategic defaults are injected.
 
-The discovery questions need to exist *before* the client has answered them,
-so they can't be generated in the same call that consumes the answers. This
-also means the discovery agent only ever sees the raw intake, not the
-eventual proposal — keeping its questions genuinely about gaps rather than
-justifications for an answer that already exists.
+### 3. Proposal Generation
+```
+IntakeState + DiscoveryAnswers → POST /api/generate-proposal → Gemini
+  → GeneratedProposal (20+ fields, single coherent JSON)
+```
+Single large call (not per-section) so numbers stay internally consistent — price matches timeline, timeline matches scope.
 
-## State management
+### 4. Chat Q&A
+```
+GeneratedProposal + question → POST /api/proposal-chat → Gemini → answer
+```
+Stateless: full proposal JSON re-sent on every turn.
 
-No database. State lives in:
-- `lib/store.ts` (Zustand) for the in-progress wizard, only for the current
-  browser session
-- The returned `Proposal` object, which is the entire source of truth for
-  the preview screen, the PDF export, and the chat assistant — nothing is
-  re-fetched or re-derived after generation, so "what you see is what
-  exports"
+### 5. PDF Export
+```
+GeneratedProposal → jsPDF → PDF file (client-side only, no server)
+```
 
-This was a deliberate scope cut for the 72-hour window. See README.md → "What
-I'd build next" for the persistence layer (Postgres + Prisma) that would
-replace this in a real multi-user product.
+## Key Design Decisions
 
-## PDF generation approach
+| Decision | Rationale |
+|---|---|
+| **Single large generation call** | Keeps all sections internally consistent (price ↔ timeline ↔ scope) |
+| **Discovery separate from generation** | Asks questions BEFORE the proposal exists, preventing circular reasoning |
+| **No database** | Session-scoped by design; Zustand in browser memory |
+| **PDF from data, not DOM** | jsPDF against the Proposal object produces selectable text and proper pagination |
+| **Server-side only AI keys** | `GEMINI_API_KEY` never reaches the client |
+| **REST API, not SDK** | Avoids `@google/genai` dependency conflicts with Next.js 14 |
+| **Automatic model fallback** | `gemini-2.5-flash-lite` → `gemini-2.0-flash` ensures availability |
+| **Framer Motion** | Page transitions, stagger animations, hover effects for premium feel |
 
-`lib/pdf-generator.ts` builds the PDF with `jsPDF`'s text/table primitives
-directly from the `Proposal` object — not via `html2canvas` screenshotting
-the DOM. This was chosen deliberately over the more common
-screenshot-to-PDF approach because it produces selectable text, correctly
-paginates long content (risk tables, timelines) across page breaks, and
-keeps file size small. The cost is more manual layout code (see the
-`heading` / `paragraph` / `bullets` / `table` helpers), which was judged
-worth it for output quality.
+## Component Hierarchy
 
-## Security notes
+```
+app/page.tsx
+├── AnimatedBackground (fixed, always rendered)
+├── Sidebar (fixed, collapsible, mobile-responsive)
+└── AnimatePresence (page transitions)
+    ├── DiscoverStep (forms: business context, goals, services)
+    ├── AnalyzeStep (review + confirmation)
+    ├── DiscoveryChat (AI interview + completeness radar + insights)
+    ├── GeneratingScreen (storytelling loading)
+    └── ProposalDashboard
+        ├── ExecutiveDashboard
+        │   ├── ScoreRing × 4 (SVG animated)
+        │   └── MetricCard × 4
+        ├── GlassCard × N (executive summary, scope, etc.)
+        ├── InteractiveTimeline
+        ├── Team composition (bar charts)
+        ├── Architecture (stack pills + reasoning)
+        ├── Pricing packages (3-column comparison)
+        ├── ROI projection (4 metric cards)
+        ├── Competitor benchmark
+        ├── Missing information
+        └── ChatAssistant
+```
 
-- `ANTHROPIC_API_KEY` is read server-side only (`lib/anthropic.ts`, no
-  `NEXT_PUBLIC_` prefix) and is never sent to the browser.
-- All three AI routes validate/trust only what the client sends as intake
-  data; there's no user-generated content executed or rendered as HTML
-  (React's default escaping handles this), so there's no injection surface
-  from a malicious "company name" field, for example.
+## State Management
+
+Single Zustand store (`lib/store.ts`):
+- `step`: Current wizard step (discover | analyze | architect | generating | propose)
+- `intake`: Client info, goals, services, discovery answers
+- `discoveryResult`: AI-generated questions, completeness scores, insights
+- `proposal`: Generated proposal document
+- `proposalHistory`: Array of past proposals (versioning)
+- `isLoading`, `error`: UI state
+
+No server state caching. No persistence. Session-scoped.
+
+## Security
+
+- API keys are server-side only (Next.js API routes)
+- No client-side AI calls
+- No authentication (scope cut for assessment timeline)
+- `.env` is gitignored
+
+## Scaling Considerations
+
+- Add Postgres + Prisma for proposal persistence
+- Add auth (NextAuth.js) for multi-user workspaces
+- Add streaming for section-by-section generation
+- Add Redis for rate limiting
+- Add client-facing read-only proposal links

@@ -7,12 +7,132 @@
 }
 
 * {
-  scrollbar-color: #2E3A5C #0F1729;
+  scrollbar-color: #334155 #071B34;
 }
 
+body {
+  background: linear-gradient(135deg, #020617 0%, #071B34 35%, #0F172A 70%, #1E293B 100%);
+  min-height: 100vh;
+}
+
+/* ── Glass surfaces ── */
+@layer components {
+  .glass {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .glass-input {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .glass-input:focus {
+    border-color: #00C2FF;
+    box-shadow: 0 0 0 3px rgba(0, 194, 255, 0.15);
+    background: rgba(15, 23, 42, 0.7);
+  }
+
+  .glow-text {
+    background: linear-gradient(135deg, #00C2FF, #4F46E5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(0, 194, 255, 0.3), rgba(79, 70, 229, 0.3));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #00C2FF, #4F46E5, #22D3EE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animated orbs (background) ── */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.orb-cyan {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #00C2FF, transparent 70%);
+  top: -10%;
+  right: -5%;
+  animation: orb1 25s ease-in-out infinite;
+}
+
+.orb-purple {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #4F46E5, transparent 70%);
+  bottom: -10%;
+  left: -5%;
+  animation: orb2 30s ease-in-out infinite;
+}
+
+.orb-blue {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #3B82F6, transparent 70%);
+  top: 40%;
+  left: 30%;
+  animation: orb3 20s ease-in-out infinite;
+}
+
+/* ── Dossier paper (for PDF preview) ── */
 .dossier-paper {
-  background: radial-gradient(ellipse at top left, #FBF9F3 0%, #F4EFE2 100%);
-  color: #1A1F2E;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(7, 27, 52, 0.9));
+  color: #F8FAFC;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .grain {
@@ -23,10 +143,24 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  border-radius: inherit;
 }
 
+/* ── Score ring (animated) ── */
+@keyframes score-ring {
+  from { stroke-dashoffset: 283; }
+}
+
+/* ── Shimmer loading ── */
+.shimmer-bg {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ── Seal animation ── */
 @keyframes seal-in {
   from { transform: scale(0.6) rotate(-12deg); opacity: 0; }
   to { transform: scale(1) rotate(-8deg); opacity: 1; }
@@ -35,6 +169,7 @@
   animation: seal-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ── Print ── */
 @media print {
   body { background: white; }
 }

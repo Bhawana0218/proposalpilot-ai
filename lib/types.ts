@@ -1,5 +1,3 @@
-// Core domain types shared across the wizard, API routes, and proposal document.
-
 export type ClientPersonality =
   | "Startup Founder"
   | "Enterprise Client"
@@ -9,17 +7,17 @@ export type ClientPersonality =
 export interface ClientInfo {
   companyName: string;
   industry: string;
-  companySize: string; // "1-10" | "11-50" | "51-200" | "200+"
+  companySize: string;
   region: string;
   existingWebsite?: string;
-  budgetRange: string; // "<$10k" | "$10k-$25k" | "$25k-$50k" | "$50k+"
+  budgetRange: string;
   contactPerson: string;
   contactEmail?: string;
 }
 
 export interface BusinessGoals {
-  selected: string[]; // e.g. "Increase sales", "Automate operations"
-  freeText: string; // client's own description of what they need, in their words
+  selected: string[];
+  freeText: string;
 }
 
 export const SERVICE_OPTIONS = [
@@ -51,6 +49,22 @@ export interface IntakeState {
   discoveryAnswers: DiscoveryAnswer[];
 }
 
+// ---- Discovery Intelligence ----
+
+export interface DiscoveryCompleteness {
+  businessClarity: number;
+  technicalConfidence: number;
+  scopeCompleteness: number;
+  deliveryRisk: number;
+}
+
+export interface DiscoveryResult {
+  questions: string[];
+  completeness: DiscoveryCompleteness;
+  consultantInsights: string[];
+  riskFlags: string[];
+}
+
 // ---- AI-generated proposal document ----
 
 export interface ScopeRisk {
@@ -67,7 +81,7 @@ export interface TimelinePhase {
 
 export interface TeamRole {
   role: string;
-  allocation: number; // percentage 0-100
+  allocation: number;
 }
 
 export interface PricingPackage {
@@ -85,7 +99,7 @@ export interface CompletenessBreakdown {
 }
 
 export interface QualityScore {
-  overall: number; // 0-100
+  overall: number;
   strengths: string[];
   weaknesses: string[];
 }
@@ -106,7 +120,7 @@ export interface ROIForecast {
   currentCostEstimate: string;
   projectedCostAfter: string;
   estimatedAnnualSavings: string;
-  operationalEfficiencyGainPct: string; // e.g. "25-35%"
+  operationalEfficiencyGainPct: string;
   narrative: string;
 }
 
@@ -116,8 +130,21 @@ export interface DealProbability {
   negativeFactors: string[];
 }
 
+export interface BudgetEstimate {
+  teamSize: number;
+  roles: { role: string; headcount: number }[];
+  estimatedCostRange: string;
+  deliveryDuration: string;
+}
+
+export interface WinProbability {
+  probability: number;
+  reasoning: string[];
+}
+
 export interface GeneratedProposal {
   clientPersonality: ClientPersonality;
+  proposalScore: number;
   executiveSummary: string;
   problemStatement: string;
   proposedSolution: string;
@@ -139,6 +166,8 @@ export interface GeneratedProposal {
   quality: QualityScore;
   dealProbability: DealProbability;
   missingInformation: string[];
+  budgetEstimate: BudgetEstimate;
+  winProbability: WinProbability;
   version: number;
 }
 
