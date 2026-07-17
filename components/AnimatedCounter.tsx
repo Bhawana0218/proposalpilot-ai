@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function AnimatedCounter({
   target,
@@ -14,7 +14,7 @@ export default function AnimatedCounter({
   prefix?: string;
 }) {
   const [count, setCount] = useState(0);
-  const started = typeof window !== "undefined" ? { current: false } : { current: true };
+  const started = useRef(false);
 
   useEffect(() => {
     if (started.current) return;

@@ -64,9 +64,11 @@ export default function Sidebar({
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-white/[0.06] px-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-500">
-            <span className="font-display text-sm font-bold text-white">N</span>
-          </div>
+          <img
+            src="/favicon.ico"
+            alt="NexGeTech"
+            className="h-9 w-9 shrink-0 rounded-lg object-cover"
+          />
           {!collapsed && (
             <span className="font-display text-sm font-semibold text-white">
               NexGeTech

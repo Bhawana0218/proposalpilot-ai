@@ -238,9 +238,31 @@ export default function DiscoveryChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...intake, discoveryAnswers }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate proposal");
-      setProposal(data as Proposal);
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to generate proposal");
+      }
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let raw = "";
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          raw += decoder.decode(value, { stream: true });
+        }
+      }
+
+      const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+      const document = JSON.parse(cleaned);
+      const proposal = {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        intake,
+        document,
+      };
+      setProposal(proposal as Proposal);
     } catch (err: any) {
       setError(err.message);
       setStep("architect");

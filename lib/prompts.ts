@@ -88,7 +88,32 @@ CRITICAL RULES — VIOLATION IS UNACCEPTABLE:
    - Training & documentation
    - Post-launch support
 
-Return ONLY raw JSON (no markdown fences) matching this shape:
+EXAMPLE OUTPUT (you must always produce questions, even if intake is detailed):
+
+{
+  "questions": [
+    "Will the platform need to handle multi-tenant data isolation, or is this single-tenant?",
+    "Are there existing legacy systems that require API integration — and if so, are those APIs documented?",
+    "What is the expected number of concurrent users at launch vs. 12 months post-launch?",
+    "Who handles QA and UAT — will NexGeTech own that end-to-end, or does the client have internal QA?"
+  ],
+  "completeness": {
+    "businessClarity": 68,
+    "technicalConfidence": 45,
+    "scopeCompleteness": 55,
+    "deliveryRisk": 60
+  },
+  "consultantInsights": [
+    "Healthcare clients in this size range typically need HIPAA compliance baked into the architecture — this should be planned from sprint 1, not bolted on later.",
+    "Companies offering both web and mobile often underestimate the 30-40% cost premium of native mobile vs. responsive web. This should be clarified early."
+  ],
+  "riskFlags": [
+    "No mention of deployment environment or DevOps ownership — this can add 2-3 weeks if not pre-planned.",
+    "Budget range not provided — proposal pricing may miss the mark without it."
+  ]
+}
+
+Return ONLY raw JSON (no markdown fences) matching this exact shape:
 {
   "questions": [
     "question 1 that impacts scope/cost/timeline",

@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   title: "NexGeTech AI Pre-Sales Copilot",
   description:
     "Intelligent business consultant that helps agencies create winning project proposals, scope documents, delivery plans, and budgets in minutes.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

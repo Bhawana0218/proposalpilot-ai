@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { askGemini } from "@/lib/gemini";
+import { askGroq } from "@/lib/groq";
 import { CHAT_SYSTEM_PROMPT } from "@/lib/prompts";
 import { GeneratedProposal } from "@/lib/types";
 
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const { proposal, question }: { proposal: GeneratedProposal; question: string } =
       await req.json();
 
-    const answer = await askGemini({
+    const answer = await askGroq({
       system: CHAT_SYSTEM_PROMPT,
       user: `PROPOSAL JSON CONTEXT:\n${JSON.stringify(proposal)}\n\nQUESTION: ${question}`,
       maxTokens: 500,
@@ -16,9 +16,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ answer });
   } catch (err: any) {
-    console.error("proposal-chat error:", err);
+    console.error("[Groq] proposal-chat error:", err);
     return NextResponse.json(
-      { error: err.message ?? "Failed to answer question" },
+      {
+        success: false,
+        provider: "groq",
+        error: err.message ?? "AI model temporarily unavailable. Please try again.",
+      },
       { status: 500 }
     );
   }
